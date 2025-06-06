@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>🎙️ Speech Recognition</title>
+  <style>
+    body {
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      color: #e0e8f0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 20px;
+      max-width: 700px;
+      margin: auto;
+      user-select: none;
+    }
+
+    h1 {
+      text-align: center;
+      color: #0ff;
+      text-shadow:
+        0 0 8px #0ff,
+        0 0 20px #0ff,
+        0 0 30px #00f,
+        0 0 40px #0ff,
+        0 0 50px #00f;
+      font-weight: 900;
+      letter-spacing: 1.2px;
+      margin-bottom: 40px;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 14px 28px;
+      margin: 12px 8px;
+      background: linear-gradient(45deg, #00ffff, #0066ff);
+      border: none;
+      border-radius: 12px;
+      box-shadow:
+        0 0 8px #00ffff,
+        0 0 15px #0066ff,
+        inset 0 0 8px #00ffff;
+      color: #000;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: background 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+      user-select: none;
+    }
+
+    .btn:hover, .btn:focus {
+      background: linear-gradient(45deg, #00ccff, #0044cc);
+      color: #fff;
+      box-shadow:
+        0 0 12px #00ccff,
+        0 0 20px #0044cc,
+        inset 0 0 12px #00ccff;
+      outline: none;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+      box-shadow:
+        0 0 6px #0099cc,
+        inset 0 0 6px #0099cc;
+    }
+
+    /* Glow effect around buttons on focus */
+    .btn:focus-visible {
+      outline: 2px solid #00ccff;
+      outline-offset: 3px;
+    }
+
+    .result, form {
+      margin: 25px 0;
+      padding: 16px 20px;
+      background: rgba(30, 30, 30, 0.85);
+      border-radius: 14px;
+      box-shadow:
+        0 0 10px rgba(0, 255, 255, 0.3),
+        inset 0 0 10px rgba(0, 255, 255, 0.1);
+      font-size: 1.1rem;
+      color: #d0f0ff;
+      min-height: 60px;
+      user-select: text;
+    }
+
+    select {
+      background: #222;
+      color: #0ff;
+      border: 2px solid #00ccff;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.3s ease, border-color 0.3s ease;
+      margin-left: 10px;
+    }
+
+    select:hover, select:focus {
+      background: #004466;
+      border-color: #00ffff;
+      outline: none;
+    }
+
+    /* Responsive tweaks */
+    @media (max-width: 480px) {
+      body {
+        padding: 10px;
+      }
+      .btn {
+        padding: 12px 20px;
+        margin: 10px 4px;
+        font-size: 0.9rem;
+      }
+      select {
+        margin-left: 6px;
+        padding: 8px 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>⚡ Speech Recognition (Multi-Language)</h1>
+  
+  <form id="upload-form">
+    <input type="file" id="audioFile" accept="audio/*" />
+    <select id="uploadLang">
+      <option value="en-US">English</option>
+      <option value="ta-IN">Tamil</option>
+      <option value="hi-IN">Hindi</option>
+    </select>
+    <button type="submit" class="btn">Upload & Transcribe</button>
+  </form>
+
+  <div id="uploadResult" class="result"></div>
+
+  <button id="recordBtn" class="btn">Start Recording</button>
+  <button id="stopBtn" class="btn" disabled>Stop Recording</button>
+  <select id="recordLang">
+    <option value="en-US">English</option>
+    <option value="ta-IN">Tamil</option>
+    <option value="hi-IN">Hindi</option>
+  </select>
+
+  <div id="recordResult" class="result"></div>
+
+  <form id="downloadForm" style="display:none;">
+    <input type="hidden" name="text" id="pdfText" />
+    <button type="submit" id="downloadBtn" class="btn">📄 Download PDF</button>
+  </form>
+
+  <script>
+    const uploadForm = document.getElementById('upload-form'),
+          recordBtn = document.getElementById('recordBtn'),
+          stopBtn = document.getElementById('stopBtn'),
+          uploadResult = document.getElementById('uploadResult'),
+          recordResult = document.getElementById('recordResult'),
+          downloadForm = document.getElementById('downloadForm'),
+          pdfText = document.getElementById('pdfText');
+
+    uploadForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      const fileEl = document.getElementById('audioFile'),
+            lang = document.getElementById('uploadLang').value;
+      uploadResult.textContent = "⏳ Processing...";
+
+      const fd = new FormData();
+      fd.append('file', fileEl.files[0]);
+      fd.append('language', lang);
+
+      try {
+        const res = await fetch('/upload', {method: 'POST', body: fd});
+        const data = await res.json();
+        uploadResult.textContent = data.text ?? data.err ?? "Error: No response";
+        if(data.text){
+          pdfText.value = data.text;
+          downloadForm.style.display = 'block';
+        } else {
+          downloadForm.style.display = 'none';
+        }
+      } catch (err) {
+        uploadResult.textContent = "❌ Upload failed: " + err.message;
+        downloadForm.style.display = 'none';
+      }
+    });
+
+    let recorder, chunks = [], stream;
+
+    recordBtn.addEventListener('click', async () => {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        return alert("Microphone access is not supported by your browser.");
+      }
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        recorder = new MediaRecorder(stream);
+        chunks = [];
+
+        recorder.ondataavailable = e => chunks.push(e.data);
+
+        recorder.onstop = async () => {
+          recordResult.textContent = "⏳ Processing recording...";
+          const blob = new Blob(chunks);
+          const fd = new FormData();
+          fd.append('audio', blob);
+          fd.append('language', document.getElementById('recordLang').value);
+          try {
+            const res = await fetch('/record', { method: 'POST', body: fd });
+            const data = await res.json();
+            if (data.text) {
+              recordResult.textContent = data.text;
+              pdfText.value = data.text;
+              downloadForm.style.display = 'block';
+            } else {
+              recordResult.textContent = data.err || "No transcription received.";
+              downloadForm.style.display = 'none';
+            }
+          } catch (err) {
+            recordResult.textContent = "❌ Error: " + err.message;
+            downloadForm.style.display = 'none';
+          }
+          // Stop all audio tracks to turn off mic
+          stream.getTracks().forEach(track => track.stop());
+        };
+
+        recorder.start();
+        recordBtn.disabled = true;
+        stopBtn.disabled = false;
+        recordResult.textContent = "🎙️ Recording...";
+      } catch (err) {
+        alert("Could not start recording: " + err.message);
+      }
+    });
+
+    stopBtn.addEventListener('click', () => {
+      if (recorder && recorder.state === 'recording') {
+        recorder.stop();
+        stopBtn.disabled = true;
+        recordBtn.disabled = false;
+      }
+    });
+
+    downloadForm.addEventListener('submit', async e => {
+      e.preventDefault();
+
+      const fd = new FormData(downloadForm);
+
+      try {
+        const response = await fetch('/download_pdf', {
+          method: 'POST',
+          body: fd,
+        });
+
+        if(!response.ok) throw new Error('Failed to download PDF.');
+
+        const blob = await response.blob();
+
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = "transcript.pdf";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      } catch (err) {
+        alert("Download failed: " + err.message);
+      }
+    });
+  </script>
+</body>
+</html>
