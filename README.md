@@ -1,8 +1,6 @@
 # Speech-Recognition-System
 
-This project implements two different speech-to-text systems:
-1. Using Google's Speech Recognition API via the SpeechRecognition library
-2. Using Facebook's Wav2Vec model
+A Flask-based web application that allows users to **upload or record audio**, transcribe the speech to **English text**, and download the transcription as a **PDF document**.
 
 ## Requirements
 
