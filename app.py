@@ -13,9 +13,13 @@ def index():
     return render_template('index.html')
 
 def transcribe_file(file_stream, language):
+    # Validate supported file types
+    if not file_stream.filename.endswith(('.wav', '.mp3', '.flac', '.ogg', '.m4a')):
+        raise ValueError("Unsupported audio format. Please upload .wav, .mp3, .flac, .ogg or .m4a")
+
+    # Convert uploaded audio to standard format for recognition
     audio = AudioSegment.from_file(file_stream)
     with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as tmp:
-        # Convert audio to mono 16kHz wav for speech recognition
         audio.set_channels(1).set_frame_rate(16000).export(tmp.name, format='wav')
         temp_path = tmp.name
 
@@ -43,8 +47,11 @@ def record():
     if 'audio' not in request.files:
         return jsonify(err="No audio"), 400
     language = request.form.get('language', 'en-US')
-    # Reuse the same transcription logic for recorded audio
-    return upload()
+    try:
+        text = transcribe_file(request.files['audio'], language)
+        return jsonify(text=text)
+    except Exception as e:
+        return jsonify(err=str(e)), 500
 
 @app.route('/download_pdf', methods=['POST'])
 def download_pdf():
@@ -60,18 +67,16 @@ def download_pdf():
 
     c.setFont("Times-Roman", font_size)
 
-    # Wrap the text to fit max_width
     lines = []
     for paragraph in text.split('\n'):
         wrapped_lines = simpleSplit(paragraph, "Times-Roman", font_size, max_width)
         lines.extend(wrapped_lines)
-        lines.append('')  # Blank line between paragraphs
+        lines.append('')
 
     y = height - margin
-
     for line in lines:
         if y < margin:
-            c.showPage()  # start new page
+            c.showPage()
             c.setFont("Times-Roman", font_size)
             y = height - margin
         c.drawString(margin, y, line)
