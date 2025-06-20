@@ -12,6 +12,44 @@ This project implements two different speech-to-text systems:
 ## Installation
 
 1. Clone this repository
-2. Install the requirements:
+2. Install the requirements:# 🎙️ Speech Recognition System
+
+A Flask web app that converts speech (uploaded or recorded) into text using `SpeechRecognition` and Google API. It supports multiple languages and allows users to **download the transcript as a PDF**.
+
+> 🌐 [Live Demo](https://your-app.onrender.com)  
+> 📌 Replace the link above with your deployed Render/Railway app URL.
+
+---
+
+## 🚀 Features
+
+- 🔊 Upload or record audio in `.mp3`, `.wav`, `.flac`, `.ogg`, or `.m4a`
+- 🌍 Multi-language support (English, Tamil, Hindi)
+- 📄 Export transcribed text as a PDF
+- ⚡ Clean, modern UI with a glowing futuristic design
+- 🔐 Input validation & error handling
+
+---
+
+## 🛠️ Technologies Used
+
+- **Frontend:** HTML, CSS, JavaScript  
+- **Backend:** Python (Flask)  
+- **Libraries:**  
+  - `SpeechRecognition`  
+  - `Pydub`  
+  - `ReportLab`  
+  - `FFmpeg` (required for audio conversion)
+
+---
+
+## 📦 Installation
+
+### 1. Clone this repo
+
+```bash
+git clone https://github.com/VEERAKARTHICK235/speech-recognition-system.git
+cd speech-recognition-system
+
    ```bash
    pip install -r requirements.txt
