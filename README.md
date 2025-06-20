@@ -16,15 +16,14 @@ This project implements two different speech-to-text systems:
 
 A Flask web app that converts speech (uploaded or recorded) into text using `SpeechRecognition` and Google API. It supports multiple languages and allows users to **download the transcript as a PDF**.
 
-> 🌐 [Live Demo](https://your-app.onrender.com)  
-> 📌 Replace the link above with your deployed Render/Railway app URL.
+> 🌐 [Live Demo](https://speech-recognition-system-srs.onrender.com/)  
+
 
 ---
 
 ## 🚀 Features
 
 - 🔊 Upload or record audio in `.mp3`, `.wav`, `.flac`, `.ogg`, or `.m4a`
-- 🌍 Multi-language support (English, Tamil, Hindi)
 - 📄 Export transcribed text as a PDF
 - ⚡ Clean, modern UI with a glowing futuristic design
 - 🔐 Input validation & error handling
