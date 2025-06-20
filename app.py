@@ -12,7 +12,7 @@ app = Flask(__name__)
 def index():
     return render_template('index.html')
 
-def transcribe_file(file_stream, language):
+def transcribe_file(file_stream):
     # Validate supported file types
     if not file_stream.filename.endswith(('.wav', '.mp3', '.flac', '.ogg', '.m4a')):
         raise ValueError("Unsupported audio format. Please upload .wav, .mp3, .flac, .ogg or .m4a")
@@ -26,7 +26,7 @@ def transcribe_file(file_stream, language):
     recog = sr.Recognizer()
     with sr.AudioFile(temp_path) as src:
         data = recog.record(src)
-        text = recog.recognize_google(data, language=language)
+        text = recog.recognize_google(data, language='en-US')  # Default to English
 
     os.unlink(temp_path)
     return text
@@ -35,9 +35,8 @@ def transcribe_file(file_stream, language):
 def upload():
     if 'file' not in request.files:
         return jsonify(err="No file"), 400
-    language = request.form.get('language', 'en-US')
     try:
-        text = transcribe_file(request.files['file'], language)
+        text = transcribe_file(request.files['file'])
         return jsonify(text=text)
     except Exception as e:
         return jsonify(err=str(e)), 500
@@ -46,9 +45,8 @@ def upload():
 def record():
     if 'audio' not in request.files:
         return jsonify(err="No audio"), 400
-    language = request.form.get('language', 'en-US')
     try:
-        text = transcribe_file(request.files['audio'], language)
+        text = transcribe_file(request.files['audio'])
         return jsonify(text=text)
     except Exception as e:
         return jsonify(err=str(e)), 500
