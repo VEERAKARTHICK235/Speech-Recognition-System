@@ -61,16 +61,40 @@
       min-height: 60px;
       user-select: text;
     }
-    @media (max-width: 480px) {
-      body {
-        padding: 10px;
-      }
-      .btn {
-        padding: 12px 20px;
-        margin: 10px 4px;
-        font-size: 0.9rem;
+   @media (max-width: 768px) {
+  body {
+    padding: 10px;
+    font-size: 16px;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    text-align: center;
+  }
+
+  .btn {
+    display: block;
+    width: 100%;
+    margin: 10px 0;
+    font-size: 1rem;
+    padding: 12px;
+  }
+
+  #audioFile,
+  select {
+    display: block;
+    width: 100%;
+    margin: 10px 0;
+  }
+
+  .result, form {
+    font-size: 1rem;
+    padding: 12px 16px;
+    word-wrap: break-word;
+  
       }
     }
+    
   </style>
 </head>
 <body>
